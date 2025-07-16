@@ -5,7 +5,9 @@ import org.springframework.stereotype.Component;
 import org.telegram.telegrambots.client.okhttp.OkHttpTelegramClient;
 import org.telegram.telegrambots.longpolling.util.LongPollingSingleThreadUpdateConsumer;
 import org.telegram.telegrambots.meta.api.methods.send.SendMessage;
+import org.telegram.telegrambots.meta.api.methods.send.SendPhoto;
 import org.telegram.telegrambots.meta.api.objects.CallbackQuery;
+import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
@@ -14,7 +16,11 @@ import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKe
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.util.List;
+import java.util.concurrent.ThreadLocalRandom;
 
 @Component
 public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
@@ -115,9 +121,33 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
     }
 
     private void sendRandom(Long chatId) {
+        var randomInt = ThreadLocalRandom.current().nextInt(0,1000);
+        sendMessage(chatId, "Your random number is: " + randomInt);
     }
 
     private void sendPicture(Long chatId) {
+        sendMessage(chatId, "Started loading of the picture");
+        new Thread(() -> {
+            var imageUrl = "https://picsum.photos/200";
+
+            try {
+                URL url = new URL(imageUrl);
+
+                var stream = url.openStream();
+
+                SendPhoto sendPhoto = SendPhoto.builder()
+                        .chatId(chatId)
+                        .photo(new InputFile(stream,"randomPicture"))
+                        .caption("Your random picture: ")
+                        .build();
+                telegramClient.execute(sendPhoto);
+
+            } catch (IOException | TelegramApiException e) {
+                throw new RuntimeException(e);
+            }
+
+        }).start();
+        //https://picsum.photos/200
     }
 
     private void sendMyName(Long chatId, User user) {
