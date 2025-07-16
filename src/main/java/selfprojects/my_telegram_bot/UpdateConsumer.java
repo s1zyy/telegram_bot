@@ -11,14 +11,17 @@ import org.telegram.telegrambots.meta.api.objects.InputFile;
 import org.telegram.telegrambots.meta.api.objects.Update;
 import org.telegram.telegrambots.meta.api.objects.User;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.InlineKeyboardMarkup;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.ReplyKeyboardMarkup;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardButton;
 import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.InlineKeyboardRow;
+import org.telegram.telegrambots.meta.api.objects.replykeyboard.buttons.KeyboardRow;
 import org.telegram.telegrambots.meta.exceptions.TelegramApiException;
 import org.telegram.telegrambots.meta.generics.TelegramClient;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ThreadLocalRandom;
 
@@ -41,6 +44,16 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             if(messageText.equals("/start")){
                 sendMainMenu(chatId);
             }
+            else if(messageText.equals("/keyboard")){
+                sendReplyKeyboard(chatId);
+            }
+            else if(messageText.equals("Hello")){
+                sendMyName(chatId,update.getMessage().getFrom());
+            }
+            else if(messageText.equals("Picture")){
+                sendPicture(chatId);
+            }
+
             else{
                 sendMessage(chatId,"I don't understand that command!");
 
@@ -48,6 +61,30 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
         }
         else if(update.hasCallbackQuery()){
             handleCallbackQuery(update.getCallbackQuery());
+        }
+    }
+
+    private void sendReplyKeyboard(Long chatId){
+        SendMessage sendMessage = SendMessage
+                .builder()
+                .text("This is your reply keyboard")
+                .chatId(chatId)
+                .build();
+
+        List<KeyboardRow> inlineKeyboardButtons = List.of(
+                new KeyboardRow("Hello"),
+                new KeyboardRow("Picture")
+        );
+
+        ReplyKeyboardMarkup replyKeyboardMarkup = new ReplyKeyboardMarkup(inlineKeyboardButtons);
+
+        sendMessage.setReplyMarkup(replyKeyboardMarkup);
+
+        try {
+            telegramClient.execute(sendMessage);
+
+        } catch (TelegramApiException e) {
+            throw new RuntimeException(e);
         }
     }
 
@@ -147,7 +184,6 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
             }
 
         }).start();
-        //https://picsum.photos/200
     }
 
     private void sendMyName(Long chatId, User user) {
