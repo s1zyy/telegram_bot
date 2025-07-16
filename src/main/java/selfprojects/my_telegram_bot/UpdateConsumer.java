@@ -154,8 +154,8 @@ public class UpdateConsumer implements LongPollingSingleThreadUpdateConsumer {
         String name = user.getFirstName();
         String lastName = user.getLastName();
 
-        String fullName = lastName == null ? "Hello " + name : "Hello " + lastName + " " + name;
-        sendMessage(chatId,fullName);
+        String fullName = lastName == null ? "Hello " + name : "Hello " + name + " " + lastName;
+        sendMessage(chatId,fullName + "\nYour user id is: @" + user.getUserName());
 
 //        if(lastName == null){
 //            sendMessage(chatId, "Hello "+name);
